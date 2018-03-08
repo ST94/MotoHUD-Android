@@ -41,6 +41,8 @@ build/
 .navigation
 captures/
 output.json 
+/gradle.properties
+/app/src/release
 
 #NDK
 obj/
