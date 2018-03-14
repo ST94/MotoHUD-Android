@@ -29,6 +29,7 @@ import motohud.fydp.com.motohud.bluetooth.BluetoothConstants
 import motohud.fydp.com.motohud.R
 import motohud.fydp.com.motohud.dongle.MotorcycleState
 import motohud.fydp.com.motohud.navigation.NavigationHttpRequest
+import motohud.fydp.com.motohud.navigation.NavigationValue
 import motohud.fydp.com.motohud.navigation.ui.DirectionDialogFragment
 import motohud.fydp.com.motohud.utils.PermissionUtils
 import java.io.BufferedReader
@@ -53,6 +54,7 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
     private var dongleMacAddress = ""
     private var helmetMacAddress = ""
     private lateinit var latestMotorcycleState : MotorcycleState
+    private var hudNavigationValues = ArrayList<NavigationValue>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,6 +94,29 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
         maps_scan_button.setOnClickListener {
             scanAllBluetoothDevice()
         }
+
+        maps_transmit_button.setOnClickListener {
+            if (hudNavigationValues.size > 0 && latestMotorcycleState != null && isConnected && helmetMacAddress != "") {
+                for (i in 0 until hudNavigationValues.size) {
+                    //TODO  THIS SHOULD NOT BE DONE ON THE UI THREAD
+                    sendMessageString(helmetMacAddress, generateHelmetInfoString(hudNavigationValues[i], latestMotorcycleState))
+                }
+            }
+        }
+    }
+
+    private fun generateHelmetInfoString(navValue : NavigationValue, mState : MotorcycleState) : String  {
+        var builder = StringBuilder()
+        builder.append(navValue.distance)
+        builder.append(",")
+        builder.append(navValue.direction.ordinal)
+        builder.append(",")
+        builder.append(mState.speed)
+        builder.append(",")
+        builder.append(mState.rpm)
+        builder.append(",")
+        builder.append(mState.gearNumber)
+        return builder.toString()
     }
 
     override fun onStart() {
@@ -382,127 +407,13 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
         return data
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-//        EventBus.getDefault().unregister(this)
-//        closeAllConnections()
-    }
-
-//    private fun closeAllConnections() {
-//        mBluetoothManager!!.closeAllConnexion()
-//    }
-//
-//    private fun setTimeDiscoverable(timeInSec: Int) {
-//        mBluetoothManager!!.setTimeDiscoverable(timeInSec)
-//    }
-//
-//    private fun startDiscovery() {
-//        mBluetoothManager!!.startDiscovery()
-//    }
-//
-//    fun scanAllBluetoothDevices() {
-//        mBluetoothManager!!.scanAllBluetoothDevice()
-//    }
-//
-//    fun disconnectServer() {
-//        mBluetoothManager!!.disconnectServer(true)
-//    }
-//
-//    private fun createServer(address: String) {
-//        mBluetoothManager!!.createServeur(address)
-//    }
-//
-//    fun selectServerMode() {
-//        mBluetoothManager!!.selectServerMode()
-//    }
-//
-//    fun getTypeBluetooth(): BluetoothManager.TypeBluetooth {
-//        return mBluetoothManager!!.mType
-//    }
-//
-//    fun getBluetoothMode(): BluetoothManager.TypeBluetooth {
-//        return mBluetoothManager!!.mType
-//    }
-//
-//    fun createClient(addressMac: String) {
-//        mBluetoothManager!!.createClient(addressMac)
-//    }
-//
-//    fun setMessageMode(messageMode: BluetoothManager.MessageMode) {
-//        mBluetoothManager!!.setMessageMode(messageMode)
-//    }
-//
-//    fun sendMessageStringToAll(message: String) {
-//        mBluetoothManager!!.sendStringMessageForAll(message)
-//    }
-//
-//    fun sendMessageString(addressMacTarget: String, message: String) {
-//        mBluetoothManager!!.sendStringMessage(addressMacTarget, message)
-//    }
-//
-//    fun sendMessageObjectToAll(message: Any) {
-//        mBluetoothManager!!.sendObjectForAll(message)
-//    }
-//
-//    fun sendMessageObject(adressMacTarget: String, message: Any) {
-//        mBluetoothManager!!.sendObject(adressMacTarget, message)
-//    }
-//
-//    fun sendMessageBytesForAll(message: ByteArray) {
-//        mBluetoothManager!!.sendBytesForAll(message)
-//    }
-//
-//    fun sendMessageBytes(adressMacTarget: String, message: ByteArray) {
-//        mBluetoothManager!!.sendBytes(adressMacTarget, message)
-//    }
-//
-//    fun isConnected(): Boolean {
-//        return mBluetoothManager!!.isConnected
-//    }
-//
-//    fun onEventMainThread(device: BluetoothDevice) {
-//        onBluetoothDeviceFound(device)
-//        createServer(device.address)
-//    }
-//
-//    private fun onEventMainThread( event : ClientConnectionSuccess){
-//        mBluetoothManager!!.isConnected = true
-//        onClientConnectionSuccess()
-//    }
-//
-//    private fun onEventMainThread(event : ClientConnectionFail){
-//        mBluetoothManager!!.isConnected = false
-//        onClientConnectionFail()
-//    }
-//
-//    private fun onEventMainThread(event : ServeurConnectionSuccess){
-//        mBluetoothManager!!.isConnected = true
-//        mBluetoothManager!!.onServerConnectionSuccess(event.mClientAdressConnected);
-//        onServerConnectionSuccess()
-//    }
-//
-//    private fun onEventMainThread(event : ServeurConnectionFail){
-//        mBluetoothManager!!.onServerConnectionFailed(event.mClientAdressConnectionFail);
-//        onServerConnectionFail()
-//    }
-//
-//    private fun onEventMainThread(event: BluetoothCommunicatorString){
-//        onBluetoothMsgStringReceived(event.mMessageReceive);
-//    }
-//
-//    private fun onEventMainThread(event : BluetoothCommunicatorObject){
-//        onBluetoothMsgObjectReceived(event.mObject);
-//    }
-//
-//    private fun onEventMainThread(event : BluetoothCommunicatorBytes){
-//        onBluetoothMsgBytesReceived(event.mBytesReceive)
-//    }
-
     // Fetches data from url passed
     @SuppressLint("StaticFieldLeak")
     private inner class FetchUrl : AsyncTask<String, Void, String>(), NavigationHttpRequest.AsyncResponse{
-        override fun processFinish(output: PolylineOptions) {
+        override fun processFinish(output: PolylineOptions, navigationValues : List<NavigationValue>) {
             mMap.addPolyline(output)
+            hudNavigationValues = ArrayList(navigationValues)
+            maps_transmit_button.isEnabled = true
         }
 
         override fun doInBackground(vararg url: String): String {

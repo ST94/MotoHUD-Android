@@ -1,6 +1,7 @@
 package motohud.fydp.com.motohud.navigation
 
 import com.google.android.gms.maps.model.LatLng
+import motohud.fydp.com.motohud.navigation.NavigationValue.Direction
 import org.json.JSONException
 import org.json.JSONObject
 import org.json.JSONArray
@@ -15,9 +16,10 @@ class NavigationHttpParser {
     /**
      * Receives a JSONObject and returns a list of lists containing latitude and longitude
      */
-    fun parse(jObject: JSONObject): List<List<HashMap<String, String>>> {
+    fun parse(jObject: JSONObject): NavigationResult {
 
         val routes = ArrayList<List<HashMap<String,String>>>()
+        val navigationValues = ArrayList<NavigationValue>()
         val jRoutes: JSONArray
         var jLegs: JSONArray
         var jSteps: JSONArray
@@ -36,6 +38,20 @@ class NavigationHttpParser {
 
                     /** Traversing all steps  */
                     for (k in 0 until jSteps.length()) {
+                        var distance = ((jSteps.get(k) as JSONObject).get("distance") as JSONObject).get("value") as Int
+                        var maneuver = Direction.STRAIGHT
+                        try {
+                            val maneuverString = (jSteps.get(k) as JSONObject).get("maneuver") as String
+                            if (maneuverString == "turn-left") {
+                                maneuver = Direction.LEFT
+                            } else if (maneuverString == "turn-right"){
+                                maneuver = Direction.RIGHT
+                            }
+                        } catch (jsonEx : JSONException) {
+                            //maneuver does not exist, keep going straight
+                        }
+                        navigationValues.add(NavigationValue(maneuver, distance))
+
                         var polyline = ((jSteps.get(k) as JSONObject).get("polyline") as JSONObject).get("points") as String
                         val list = decodePoly(polyline)
 
@@ -55,7 +71,7 @@ class NavigationHttpParser {
             e.printStackTrace()
         } catch (e: Exception) {
         }
-        return routes
+        return NavigationResult(routes, navigationValues)
     }
 
 

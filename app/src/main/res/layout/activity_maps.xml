@@ -17,14 +17,15 @@
         android:text="@string/maps_scan_button_text">
     </Button>
 
-    <!--<Button-->
-        <!--android:id="@+id/maps_transmit_button"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:gravity="center"-->
-        <!--android:padding="8dp"-->
-        <!--android:text="@string/maps_transmit_button_text">-->
-    <!--</Button>-->
+    <Button
+        android:id="@+id/maps_transmit_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="@string/maps_transmit_button_text"
+        android:clickable="false">
+    </Button>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"

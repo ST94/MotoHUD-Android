@@ -5,7 +5,7 @@ package motohud.fydp.com.motohud.navigation;
  */
 
 public class NavigationValue {
-    private enum Direction {
+    public enum Direction {
         STRAIGHT, LEFT, RIGHT
     }
 
@@ -16,4 +16,22 @@ public class NavigationValue {
         this.direction = direction;
         this.distance = distance;
     }
+
+
+    public Direction getDirection() {
+        return direction;
+    }
+
+    public void setDirection(Direction direction) {
+        this.direction = direction;
+    }
+
+    public int getDistance() {
+        return distance;
+    }
+
+    public void setDistance(int distance) {
+        this.distance = distance;
+    }
+
 }
