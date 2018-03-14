@@ -11,4 +11,6 @@
     <string name="direction_dialog_message">Enter a start and end location</string>
     <string name="cancel">@android:string/cancel</string>
     <string name="confirm">confirm</string>
+    <string name="maps_transmit_button_text">Transmit</string>
+    <string name="maps_scan_button_text">Scan</string>
 </resources>

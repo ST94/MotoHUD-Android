@@ -23,7 +23,6 @@ class NavigationHttpParser {
         var jSteps: JSONArray
 
         try {
-
             jRoutes = jObject.getJSONArray("routes")
 
             /** Traversing all routes  */
@@ -56,8 +55,6 @@ class NavigationHttpParser {
             e.printStackTrace()
         } catch (e: Exception) {
         }
-
-
         return routes
     }
 
@@ -67,7 +64,6 @@ class NavigationHttpParser {
      * Courtesy : https://jeffreysambells.com/2010/05/27/decoding-polylines-from-google-maps-direction-api-with-java
      */
     private fun decodePoly(encoded: String): List<LatLng> {
-
         val poly = ArrayList<LatLng>()
         var index = 0
         val len = encoded.length
@@ -100,7 +96,6 @@ class NavigationHttpParser {
                     lng.toDouble() / 1E5)
             poly.add(p)
         }
-
         return poly
     }
 

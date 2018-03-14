@@ -10,9 +10,11 @@ import motohud.fydp.com.motohud.maps.MapConstants.BLUETOOTH_ADMIN_PERMISSION_REQ
 import motohud.fydp.com.motohud.maps.MapConstants.BLUETOOTH_PERMISSION_REQUEST_CODE
 import motohud.fydp.com.motohud.maps.MapConstants.LOCATION_PERMISSION_REQUEST_CODE
 import motohud.fydp.com.motohud.maps.MapConstants.PERMISSION_ARRAY
-import motohud.fydp.com.motohud.maps.MapsActivity
 import motohud.fydp.com.motohud.utils.PermissionUtils
 import motohud.fydp.com.motohud.utils.PermissionUtils.isPermissionGranted
+import motohud.fydp.com.motohud.maps.MapsActivity
+import motohud.fydp.com.motohud.utils.ui.SupportPermissionDeniedDialog
+
 
 class MainActivity : AppCompatActivity() {
     private var mPermissionDenied = false
@@ -42,6 +44,7 @@ class MainActivity : AppCompatActivity() {
             PermissionUtils.requestPermission(this, BLUETOOTH_ADMIN_PERMISSION_REQUEST_CODE,
                     BLUETOOTH_ADMIN, true)
         }
+
         if (permissionsGranted){
             val intent = Intent(this, MapsActivity::class.java)
             startActivity(intent)
@@ -87,7 +90,6 @@ class MainActivity : AppCompatActivity() {
      * Displays a dialog with error message explaining that the location permission is missing.
      */
     private fun showMissingPermissionError() {
-        PermissionUtils.PermissionDeniedDialog
-                .newInstance(true).show(supportFragmentManager, "dialog")
+        SupportPermissionDeniedDialog.newInstance(true).show(supportFragmentManager, "dialog")
     }
 }
