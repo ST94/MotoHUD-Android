@@ -32,6 +32,7 @@ interface BluetoothConstants {
 
         val M_DONGLE_BT_NAME = "M_DONGLE"
         val M_HELMET_BT_NAME = "HELMET"
+        val M_SERVER_BT_NAME = "M_SERVER"
     }
 
 }

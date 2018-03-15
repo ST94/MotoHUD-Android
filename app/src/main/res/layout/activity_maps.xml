@@ -8,25 +8,32 @@
     tools:context="motohud.fydp.com.motohud.maps.MapsActivity"
     >
 
-    <Button
-        android:id="@+id/maps_scan_button"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:padding="8dp"
-        android:text="@string/maps_scan_button_text">
-    </Button>
+        android:layout_height="match_parent">
+        <Button
+            android:id="@+id/maps_scan_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="8dp"
+            android:layout_marginBottom="5dp"
+            android:background="@android:color/white"
+            android:text="@string/maps_scan_button_text">
+        </Button>
 
-    <Button
-        android:id="@+id/maps_transmit_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:padding="8dp"
-        android:text="@string/maps_transmit_button_text"
-        android:clickable="false">
-    </Button>
-
+        <Button
+            android:id="@+id/maps_transmit_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="@string/maps_transmit_button_disabled_text"
+            android:background="@android:color/darker_gray"
+            android:clickable="false">
+        </Button>
+    </LinearLayout>
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"

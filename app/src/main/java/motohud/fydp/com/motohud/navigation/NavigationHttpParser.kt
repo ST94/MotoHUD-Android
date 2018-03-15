@@ -39,18 +39,26 @@ class NavigationHttpParser {
                     /** Traversing all steps  */
                     for (k in 0 until jSteps.length()) {
                         var distance = ((jSteps.get(k) as JSONObject).get("distance") as JSONObject).get("value") as Int
-                        var maneuver = Direction.STRAIGHT
-                        try {
-                            val maneuverString = (jSteps.get(k) as JSONObject).get("maneuver") as String
-                            if (maneuverString == "turn-left") {
-                                maneuver = Direction.LEFT
-                            } else if (maneuverString == "turn-right"){
-                                maneuver = Direction.RIGHT
+
+                        for (splitDistance in 0 until distance step 100) {
+                            var maneuver = Direction.STRAIGHT
+                            try {
+                                val maneuverString = (jSteps.get(k) as JSONObject).get("maneuver") as String
+                                if (maneuverString == "turn-left") {
+                                    maneuver = Direction.LEFT
+                                } else if (maneuverString == "turn-right") {
+                                    maneuver = Direction.RIGHT
+                                }
+                            } catch (jsonEx: JSONException) {
+                                //maneuver does not exist, keep going straight
                             }
-                        } catch (jsonEx : JSONException) {
-                            //maneuver does not exist, keep going straight
+
+                            if (distance < 100) {
+                                navigationValues.add(NavigationValue(maneuver, distance))
+                            } else {
+                                navigationValues.add(NavigationValue(maneuver, splitDistance))
+                            }
                         }
-                        navigationValues.add(NavigationValue(maneuver, distance))
 
                         var polyline = ((jSteps.get(k) as JSONObject).get("polyline") as JSONObject).get("points") as String
                         val list = decodePoly(polyline)
