@@ -12,6 +12,10 @@
     <string name="cancel">@android:string/cancel</string>
     <string name="confirm">confirm</string>
     <string name="maps_transmit_button_text">Transmit</string>
+    <string name="maps_transmitting_button_text">Transmitting</string>
     <string name="maps_scan_button_text">Scan</string>
-    <string name="maps_transmit_button_disabled_text">Pair before transmitting</string>
+    <string name="maps_transmit_button_stop_state_text">Stop Transfer</string>
+    <string name="maps_transmit_button_disabled_state_text">Transmit State</string>
+    <string name="maps_transmit_button_disabled_navigation_text">Transmit Navigation</string>
+
 </resources>

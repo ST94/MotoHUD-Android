@@ -18,21 +18,44 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:padding="8dp"
+            android:layout_marginTop="10dp"
             android:layout_marginBottom="5dp"
             android:background="@android:color/white"
             android:text="@string/maps_scan_button_text">
         </Button>
 
-        <Button
-            android:id="@+id/maps_transmit_button"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="center"
             android:gravity="center"
-            android:padding="8dp"
-            android:text="@string/maps_transmit_button_disabled_text"
-            android:background="@android:color/darker_gray"
-            android:clickable="false">
-        </Button>
+            android:theme="@style/Base.Widget.AppCompat.ButtonBar">
+            <Button
+                android:id="@+id/maps_transmit_navigation_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="8dp"
+                android:layout_marginEnd="10dp"
+                android:text="@string/maps_transmit_button_disabled_navigation_text"
+                android:background="@android:color/darker_gray"
+                android:clickable="false"
+                android:theme="@style/Base.Widget.AppCompat.ButtonBar">
+            </Button>
+
+            <Button
+                android:id="@+id/maps_transmit_state_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="8dp"
+                android:text="@string/maps_transmit_button_disabled_state_text"
+                android:background="@android:color/darker_gray"
+                android:clickable="false"
+                android:theme="@style/Base.Widget.AppCompat.ButtonBar">
+            </Button>
+        </LinearLayout>
     </LinearLayout>
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
