@@ -14,4 +14,7 @@ object MapConstants {
             android.Manifest.permission.BLUETOOTH_ADMIN,
             android.Manifest.permission.ACCESS_FINE_LOCATION)
 
+    val DC_LOCATION_LATITUDE = 43.473110
+    val DC_LOCATION_LONGITUDE = -80.541529
+
 }

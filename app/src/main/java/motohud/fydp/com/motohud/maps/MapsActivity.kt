@@ -32,10 +32,14 @@ import kotlinx.android.synthetic.main.activity_maps.*
 import motohud.fydp.com.motohud.R
 import motohud.fydp.com.motohud.bluetooth.BluetoothConstants
 import motohud.fydp.com.motohud.dongle.MotorcycleState
+import motohud.fydp.com.motohud.maps.MapConstants.DC_LOCATION_LATITUDE
+import motohud.fydp.com.motohud.maps.MapConstants.DC_LOCATION_LONGITUDE
 import motohud.fydp.com.motohud.navigation.NavigationHttpRequest
 import motohud.fydp.com.motohud.navigation.NavigationValue
 import motohud.fydp.com.motohud.navigation.ui.DirectionDialogFragment
+import motohud.fydp.com.motohud.utils.LocationUtils
 import motohud.fydp.com.motohud.utils.PermissionUtils
+import motohud.fydp.com.motohud.utils.StringUtils.validateMacAddress
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
@@ -76,12 +80,20 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
         setTimeDiscoverable(BluetoothManager.BLUETOOTH_TIME_DICOVERY_3600_SEC)
         selectServerMode()
         maps_scan_button.setOnClickListener {
+            Log.d(TAG, "Scanning for bluetooth devices")
             scanAllBluetoothDevice()
         }
 
         maps_transmit_navigation_button.setOnClickListener {
-            maps_transmit_state_button.isEnabled = false
-            if (hudNavigationValues.size > 0 && latestMotorcycleState != null && isConnected && helmetMacAddress != "") {
+            Log.d(TAG, "Checking if navigation transmission is permissible")
+            //latestMotorcycleState = MotorcycleState(1,2,3)
+            if (hudNavigationValues.size > 0 && isConnected && helmetMacAddress != "") {
+                maps_transmit_state_button.isEnabled = false
+                maps_transmit_state_button.setBackgroundColor(ContextCompat.getColor(this, R.color.grey))
+                Log.d(TAG, "Requirements met, starting transmit thread")
+                if (latestMotorcycleState == null) {
+                    latestMotorcycleState = MotorcycleState(0, 0, 0)
+                }
                 Thread(Runnable {
                     for (i in 0 until hudNavigationValues.size) {
                         SystemClock.sleep(500)
@@ -98,19 +110,25 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
                     }
                     runOnUiThread {
                         maps_transmit_navigation_button.text = resources.getString(R.string.maps_transmit_button_disabled_navigation_text)
-                        maps_transmit_navigation_button.setBackgroundColor(Color.GRAY)
+                        maps_transmit_navigation_button.setTextColor(Color.BLACK)
+                        //maps_transmit_navigation_button.setBackgroundColor(ContextCompat.getColor(this, R.color.grey))
+                        maps_transmit_navigation_button.setBackgroundColor(Color.WHITE)
+                        maps_transmit_state_button.isEnabled = true
+                        maps_transmit_state_button.setBackgroundColor(Color.WHITE)
                     }
-                    hudNavigationValues.clear()
+                    //hudNavigationValues.clear()
                 }).start()
+                maps_transmit_navigation_button.text = resources.getString(R.string.maps_transmitting_button_text)
+                maps_transmit_navigation_button.setTextColor(Color.WHITE)
+                maps_transmit_navigation_button.setBackgroundColor(ContextCompat.getColor(this, R.color.colorPrimary))
             }
-
-            maps_transmit_navigation_button.text = resources.getString(R.string.maps_transmitting_button_text)
-            maps_transmit_navigation_button.setBackgroundColor(ContextCompat.getColor(this, R.color.colorPrimary))
         }
 
         maps_transmit_state_button.setOnClickListener {
             sendMotorcycleState = !sendMotorcycleState
             if (sendMotorcycleState && latestMotorcycleState != null && isConnected && helmetMacAddress != "") {
+                maps_transmit_navigation_button.isEnabled = false
+                maps_transmit_navigation_button.setBackgroundColor(ContextCompat.getColor(this, R.color.grey))
                 Thread(Runnable {
                     while (sendMotorcycleState) {
                         SystemClock.sleep(500)
@@ -119,16 +137,24 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
                     }
                     runOnUiThread({
                         maps_transmit_state_button.text = resources.getString(R.string.maps_transmit_button_disabled_state_text)
+                        maps_transmit_navigation_button.isEnabled = true
+                        if (hudNavigationValues.size > 0) {
+                            maps_transmit_navigation_button.setBackgroundColor(Color.WHITE)
+                        } else {
+                            maps_transmit_navigation_button.setBackgroundColor(ContextCompat.getColor(this, R.color.grey))
+                        }
                     })
                 }).start()
 
                 maps_transmit_state_button.text = resources.getString(R.string.maps_transmit_button_stop_state_text)
+                maps_transmit_state_button.setTextColor(Color.WHITE)
                 maps_transmit_state_button.setBackgroundColor(ContextCompat.getColor(this, R.color.colorPrimary))
             }
 
             if (!sendMotorcycleState) {
                 maps_transmit_state_button.text = resources.getString(R.string.maps_transmit_button_disabled_state_text)
                 maps_transmit_state_button.setBackgroundColor(Color.WHITE)
+                maps_transmit_state_button.setTextColor(Color.BLACK)
             }
         }
     }
@@ -151,6 +177,7 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
             builder.append(",")
             builder.append("0")
         }
+        builder.append(";")
         return builder.toString()
     }
 
@@ -240,16 +267,20 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
 
         val startField = dialog.dialog.findViewById<EditText>(R.id.start_location)
         val endField = dialog.dialog.findViewById<EditText>(R.id.end_location)
+        try {
+            val startGeocode = geocoder.getFromLocationName(startField.text.toString(), 1)
+            Log.d("MapsActivity", "startGeocode address: " + startGeocode[0].toString())
+            val endGeocode = geocoder.getFromLocationName(endField.text.toString(), 1)
+            Log.d("MapsActivity", "endGeocode address: " + endGeocode[0].toString())
 
-        val startGeocode = geocoder.getFromLocationName(startField.text.toString(), 1)
-        Log.d("MapsActivity", "startGeocode address: " + startGeocode[0].toString())
-        val endGeocode = geocoder.getFromLocationName(endField.text.toString(), 1)
-        Log.d("MapsActivity", "endGeocode address: " + endGeocode[0].toString())
+            val startLatLng = LatLng(startGeocode[0].latitude, startGeocode[0].longitude)
+            val endLatLng = LatLng(endGeocode[0].latitude, endGeocode[0].longitude)
 
-        val startLatLng = LatLng(startGeocode[0].latitude, startGeocode[0].longitude)
-        val endLatLng = LatLng(endGeocode[0].latitude, endGeocode[0].longitude)
-
-        generateDirectionMarkers(startLatLng, endLatLng)
+            generateDirectionMarkers(startLatLng, endLatLng)
+        } catch (ex : Exception) {
+            ex.printStackTrace()
+            Toast.makeText(this, "Failed to find location:", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onDialogNegativeClick(dialog: DialogFragment) {
@@ -320,7 +351,11 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
 
     @Throws(SecurityException::class)
     private fun moveToCurrentLocation(locationManager: LocationManager, provider : String) {
-        val location = locationManager.getLastKnownLocation(provider)
+        var location = locationManager.getLastKnownLocation(provider)
+        if (location == null) {
+            // Attempt to use location utils method
+            location = LocationUtils.getLastKnownLocation(this)
+        }
 
         if (location != null) {
             // Getting latitude of the current location
@@ -328,6 +363,12 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
             // Getting longitude of the current location
             val longitude = location.longitude
             // Creating a LatLng object for the current location
+            val currentPosition = LatLng(latitude, longitude)
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 15f))
+        } else {
+            // Default location to DC
+            val latitude = DC_LOCATION_LATITUDE
+            val longitude = DC_LOCATION_LONGITUDE
             val currentPosition = LatLng(latitude, longitude)
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 15f))
         }
@@ -357,7 +398,7 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
         }
     }
 
-    override fun onBluetoothMsgObjectReceived(message: Any?) {
+    override fun onBluetoothMsgObjectReceived(message: Any?, clientAddress: String) {
         Log.d(TAG, "Received bluetooth object")
         Toast.makeText(this, message.toString(), Toast.LENGTH_SHORT).show()
     }
@@ -371,9 +412,10 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
 
     override fun onServeurConnectionFail() {
         Toast.makeText(this, "Server Connection failed", Toast.LENGTH_SHORT).show()
+        Log.d(TAG, "Server connection failed")
     }
 
-    override fun onBluetoothMsgStringReceived(message: String?) {
+    override fun onBluetoothMsgStringReceived(message: String?, clientAddress: String) {
         Log.d(TAG, "Received bluetooth string")
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
@@ -384,24 +426,38 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
     override fun onClientConnectionSuccess() {
     }
 
-    override fun onServeurConnectionSuccess() {
+    override fun onServeurConnectionSuccess(clientAddress : String) {
+        if (clientAddress == BluetoothConstants.M_HELMET_MAC_ADDRRESS) {
+            helmetMacAddress = clientAddress
+            Log.d(TAG, "Connected to helmet with mac address" + clientAddress)
+        }
+        //helmetMacAddress = clientAddress
         Toast.makeText(this, "===> Server Connection succeeded", Toast.LENGTH_SHORT).show()
+        Log.d(TAG, "Connected to a client device" + clientAddress)
     }
 
     override fun myNbrClientMax(): Int {
-        return 2
+        return 7
     }
 
-    override fun onBluetoothMsgBytesReceived(message: ByteArray?) {
+    override fun onBluetoothMsgBytesReceived(message: ByteArray?, clientAddress: String) {
         //Should only be receiving from motorcycle dongle
 
-        Log.d(TAG, "Received bluetooth byte array")
+        //Log.d(TAG, "Received bluetooth byte array")
         if (message != null) {
             val motorcycleStateData = message.toString(Charset.defaultCharset())
             val splitData = motorcycleStateData.split(",")
             if (splitData.size == 3) {
                 latestMotorcycleState = MotorcycleState(Integer.parseInt(splitData[0]), Integer.parseInt(splitData[1]), Integer.parseInt(splitData[2]))
-            } else {
+                maps_transmit_state_button.isEnabled = true
+                maps_transmit_state_button.setBackgroundColor(Color.WHITE)
+            } else if (splitData.size == 1) {
+                if (splitData[0] == BluetoothConstants.M_HELMET_BT_NAME) {
+                    // Assume this is the helmet's mac address
+                    helmetMacAddress = clientAddress
+                }
+            }
+            else {
                 Toast.makeText(this,
                         "malformed motorcycle dongle message:" + message.toString(Charset.defaultCharset()),
                         Toast.LENGTH_SHORT).show()
@@ -410,21 +466,24 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
     }
 
     override fun onBluetoothDeviceFound(device: BluetoothDevice?) {
-        if (device!!.name == BluetoothConstants.M_DONGLE_BT_NAME) {
+        Log.d(TAG, "Discovered device with mac address" + device!!.address)
+        if (device!!.address == BluetoothConstants.M_DONGLE_MAC_ADDRESS) {
             Toast.makeText(this,
                     "===> Device detected and Thread Server created for this address : " + device.address,
                     Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Found motor cycle dongle")
             dongleMacAddress = device.address
             maps_transmit_state_button.isEnabled = true
             maps_transmit_state_button.setBackgroundColor(Color.WHITE)
-        } else if (device.name == BluetoothConstants.M_HELMET_BT_NAME){
+        } else if (device.address == BluetoothConstants.M_HELMET_MAC_ADDRRESS){
             helmetMacAddress = device.address
             Toast.makeText(this,
                     "===> Device detected and Thread Server created for this address : " + device.address,
                     Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Found motor cycle helmet")
         }
-        helmetMacAddress = device.address
-        dongleMacAddress = device.address
+        //helmetMacAddress = device.address
+        //dongleMacAddress = device.address
     }
 
     @Throws(IOException::class)

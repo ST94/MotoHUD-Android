@@ -1,6 +1,7 @@
 package motohud.fydp.com.motohud.navigation.ui;
 
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -41,11 +42,32 @@ public class DirectionDialogFragment extends DialogFragment {
         }
     }
 
+    // Override the Fragment.onAttach() method to instantiate the DirectionDialogListener
+    @Override
+    public void onAttach(Activity context) {
+        super.onAttach(context);
+        this.context = context;
+        // Verify that the host activity implements the callback interface
+        try {
+            // Instantiate the DirectionDialogListener so we can send events to the host
+            mListener = (DirectionDialogListener) context;
+        } catch (ClassCastException e) {
+            // The activity doesn't implement the interface, throw exception
+            throw new ClassCastException(context.toString()
+                    + " must implement DirectionDialogListener");
+        }
+    }
+
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         // Build the dialog and set up the button click handlers
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder;
+        if (context != null) {
+            builder = new AlertDialog.Builder(context);
+        } else  {
+            builder = new AlertDialog.Builder(getActivity());
+        }
 
         // Get the layout inflater
         LayoutInflater inflater = getActivity().getLayoutInflater();

@@ -64,8 +64,8 @@ class NavigationHttpParser {
                         if (distance > 100) {
                             for (splitDistance in distance downTo 0 step 100) {
                                 val point = findPointBetweenPath(list[0], list.last(), (distance - splitDistance.toDouble()))
-                                if (splitDistance < 200) {
-                                    navigationValues.add(NavigationValue(maneuver, distance, list.last()))
+                                if (splitDistance < 100) {
+                                    navigationValues.add(NavigationValue(maneuver, splitDistance, list.last()))
                                 } else {
                                     navigationValues.add(NavigationValue(Direction.STRAIGHT, splitDistance, point))
                                 }

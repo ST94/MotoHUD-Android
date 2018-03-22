@@ -33,6 +33,10 @@ interface BluetoothConstants {
         val M_DONGLE_BT_NAME = "M_DONGLE"
         val M_HELMET_BT_NAME = "HELMET"
         val M_SERVER_BT_NAME = "M_SERVER"
+
+        // Have to hard code the mac addresses since the bluetooth library won't populate name or uuid elements...
+        val M_DONGLE_MAC_ADDRESS = "B8:27:EB:08:E0:2B"
+        val M_HELMET_MAC_ADDRRESS = "58:3F:61:95:09:2F"
     }
 
 }
