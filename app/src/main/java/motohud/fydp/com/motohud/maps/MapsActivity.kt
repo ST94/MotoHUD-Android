@@ -63,6 +63,8 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
     private var helmetMacAddress = ""
     private var latestMotorcycleState : MotorcycleState? = null
     private var hudNavigationValues = ArrayList<NavigationValue>()
+
+    private var sendNavigationState = false
     private var sendMotorcycleState = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,8 +88,9 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
 
         maps_transmit_navigation_button.setOnClickListener {
             Log.d(TAG, "Checking if navigation transmission is permissible")
+            sendNavigationState = !sendNavigationState
             //latestMotorcycleState = MotorcycleState(1,2,3)
-            if (hudNavigationValues.size > 0 && isConnected && helmetMacAddress != "") {
+            if (hudNavigationValues.size > 0 && isConnected && helmetMacAddress != "" && sendNavigationState) {
                 maps_transmit_state_button.isEnabled = false
                 maps_transmit_state_button.setBackgroundColor(ContextCompat.getColor(this, R.color.grey))
                 Log.d(TAG, "Requirements met, starting transmit thread")
@@ -96,6 +99,10 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
                 }
                 Thread(Runnable {
                     for (i in 0 until hudNavigationValues.size) {
+                        if (!sendNavigationState) {
+                            break
+                        }
+
                         SystemClock.sleep(500)
                         Log.d(TAG, "Sending value to helmet: " + generateHelmetInfoString(hudNavigationValues[i], latestMotorcycleState!!, true))
                         sendMessageString(helmetMacAddress, generateHelmetInfoString(hudNavigationValues[i], latestMotorcycleState!!, true))
@@ -106,6 +113,10 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
                             } catch (ex : IndexOutOfBoundsException) {
                                 Log.d(TAG, "Ignoring index out of bounds")
                             }
+                        }
+                        SystemClock.sleep(500)
+                        if (i == (hudNavigationValues.size - 1)) {
+                            sendNavigationState = false
                         }
                     }
                     runOnUiThread {
@@ -131,7 +142,7 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
                 maps_transmit_navigation_button.setBackgroundColor(ContextCompat.getColor(this, R.color.grey))
                 Thread(Runnable {
                     while (sendMotorcycleState) {
-                        SystemClock.sleep(500)
+                        SystemClock.sleep(1000)
                         Log.d(TAG, "Sending value to helmet: " + generateHelmetInfoString(null, latestMotorcycleState!!, false))
                         sendMessageString(helmetMacAddress, generateHelmetInfoString(null, latestMotorcycleState!!, false))
                     }
@@ -450,7 +461,9 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
             if (splitData.size == 3) {
                 latestMotorcycleState = MotorcycleState(Integer.parseInt(splitData[0]), Integer.parseInt(splitData[1]), Integer.parseInt(splitData[2]))
                 maps_transmit_state_button.isEnabled = true
-                maps_transmit_state_button.setBackgroundColor(Color.WHITE)
+                if (!sendMotorcycleState) {
+                    maps_transmit_state_button.setBackgroundColor(Color.WHITE)
+                }
             } else if (splitData.size == 1) {
                 if (splitData[0] == BluetoothConstants.M_HELMET_BT_NAME) {
                     // Assume this is the helmet's mac address

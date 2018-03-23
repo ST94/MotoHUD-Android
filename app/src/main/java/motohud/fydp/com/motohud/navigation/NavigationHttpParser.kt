@@ -50,7 +50,7 @@ class NavigationHttpParser {
 
                         var maneuver = Direction.STRAIGHT
                         try {
-                            val maneuverString = (jSteps.get(k) as JSONObject).get("maneuver") as String
+                            val maneuverString = (jSteps.get(k + 1) as JSONObject).get("maneuver") as String
                             if (maneuverString == "turn-left") {
                                 maneuver = Direction.LEFT
                             } else if (maneuverString == "turn-right") {
@@ -58,20 +58,32 @@ class NavigationHttpParser {
                             }
                         } catch (jsonEx: JSONException) {
                             //maneuver does not exist, keep going straight
+                        } catch (outOfBoundsEx : IndexOutOfBoundsException) {
+                            // k + 1 will be one out of bounds
                         }
 
                         val distance = ((jSteps.get(k) as JSONObject).get("distance") as JSONObject).get("value") as Int
-                        if (distance > 100) {
-                            for (splitDistance in distance downTo 0 step 100) {
+                        var distIteration = 0
+                        if (distance > 50) {
+                            for (splitDistance in distance downTo 0 step (distance / 7)) {
                                 val point = findPointBetweenPath(list[0], list.last(), (distance - splitDistance.toDouble()))
-                                if (splitDistance < 100) {
-                                    navigationValues.add(NavigationValue(maneuver, splitDistance, list.last()))
+                                if (distIteration >= 5) {
+                                    navigationValues.add(NavigationValue(maneuver, splitDistance, point))
                                 } else {
                                     navigationValues.add(NavigationValue(Direction.STRAIGHT, splitDistance, point))
                                 }
+                                distIteration++
                             }
                         } else {
-                            navigationValues.add(NavigationValue(maneuver, distance, list.last()))
+                            for (splitDistance in distance downTo 0 step (distance / 2)) {
+                                val point = findPointBetweenPath(list[0], list.last(), (distance - splitDistance.toDouble()))
+                                if (distIteration >= 1) {
+                                    navigationValues.add(NavigationValue(maneuver, splitDistance, point))
+                                } else {
+                                    navigationValues.add(NavigationValue(Direction.STRAIGHT, splitDistance, point))
+                                }
+                                distIteration++
+                            }
                         }
                     }
                     routes.add(path)
@@ -81,6 +93,7 @@ class NavigationHttpParser {
         } catch (e: JSONException) {
             e.printStackTrace()
         } catch (e: Exception) {
+            e.printStackTrace()
         }
         return NavigationResult(routes, navigationValues)
     }
