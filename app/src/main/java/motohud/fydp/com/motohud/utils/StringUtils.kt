@@ -8,8 +8,9 @@ import java.util.regex.Pattern
  */
 
 object StringUtils {
+    const val MAC_ADDRESS_REGEX = "^([a-fA-F0-9][:-]){5}[a-fA-F0-9][:-]$"
     fun validateMacAddress(mac: String): Boolean {
-        val p = Pattern.compile("^([a-fA-F0-9][:-]){5}[a-fA-F0-9][:-]$")
+        val p = Pattern.compile(MAC_ADDRESS_REGEX)
         val m = p.matcher(mac)
         return m.find()
     }

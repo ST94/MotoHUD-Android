@@ -29,6 +29,7 @@ import com.google.android.gms.maps.model.*
 import com.ramimartin.multibluetooth.activity.BluetoothActivity
 import com.ramimartin.multibluetooth.bluetooth.manager.BluetoothManager
 import kotlinx.android.synthetic.main.activity_maps.*
+import motohud.fydp.com.motohud.BuildConfig
 import motohud.fydp.com.motohud.R
 import motohud.fydp.com.motohud.bluetooth.BluetoothConstants
 import motohud.fydp.com.motohud.dongle.MotorcycleState
@@ -194,10 +195,7 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
 
     override fun onStart() {
         super.onStart()
-//        if(!EventBus.getDefault().isRegistered(this))
-//            EventBus.getDefault().register(this)
         Log.d(TAG, "Registered event bus")
-        //mBluetoothManager!!.nbrClientMax = 2
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
@@ -321,7 +319,7 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
             // Getting URL to the Google Directions API
             val url = URL("https://maps.googleapis.com/maps/api/directions/json?origin="
                     +start.latitude+","+start.longitude +"&destination="+end.latitude+","
-                    +end.longitude+"&key=AIzaSyDwysEfPjHbKyzW-ZC5mDqi_s3bMY1-2E8")
+                    +end.longitude+"&key=" + BuildConfig.googleMapsKey)
             Log.d("onMapClick", url.toString())
             val fetchUrl = FetchUrl()
 
@@ -333,7 +331,7 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
         }
     }
 
-    fun animateMarker(marker:Marker, toPosition:LatLng, hideMarker:Boolean) {
+    private fun animateMarker(marker:Marker, toPosition:LatLng, hideMarker:Boolean) {
         val handler = Handler()
         val start = SystemClock.uptimeMillis()
         val proj = mMap.projection
@@ -438,13 +436,13 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
     }
 
     override fun onServeurConnectionSuccess(clientAddress : String) {
-        if (clientAddress == BluetoothConstants.M_HELMET_MAC_ADDRRESS) {
-            helmetMacAddress = clientAddress
-            Log.d(TAG, "Connected to helmet with mac address" + clientAddress)
-        }
+//        if (clientAddress == BluetoothConstants.M_HELMET_MAC_ADDRRESS) {
+//            helmetMacAddress = clientAddress
+//            Log.d(TAG, "Connected to helmet with mac address$clientAddress")
+//        }
         //helmetMacAddress = clientAddress
         Toast.makeText(this, "===> Server Connection succeeded", Toast.LENGTH_SHORT).show()
-        Log.d(TAG, "Connected to a client device" + clientAddress)
+        Log.d(TAG, "Connected to a client device$clientAddress")
     }
 
     override fun myNbrClientMax(): Int {
@@ -480,21 +478,21 @@ class MapsActivity : BluetoothActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
 
     override fun onBluetoothDeviceFound(device: BluetoothDevice?) {
         Log.d(TAG, "Discovered device with mac address" + device!!.address)
-        if (device!!.address == BluetoothConstants.M_DONGLE_MAC_ADDRESS) {
-            Toast.makeText(this,
-                    "===> Device detected and Thread Server created for this address : " + device.address,
-                    Toast.LENGTH_SHORT).show()
-            Log.d(TAG, "Found motor cycle dongle")
-            dongleMacAddress = device.address
-            maps_transmit_state_button.isEnabled = true
-            maps_transmit_state_button.setBackgroundColor(Color.WHITE)
-        } else if (device.address == BluetoothConstants.M_HELMET_MAC_ADDRRESS){
-            helmetMacAddress = device.address
-            Toast.makeText(this,
-                    "===> Device detected and Thread Server created for this address : " + device.address,
-                    Toast.LENGTH_SHORT).show()
-            Log.d(TAG, "Found motor cycle helmet")
-        }
+//        if (device.address == BluetoothConstants.M_DONGLE_MAC_ADDRESS) {
+//            Toast.makeText(this,
+//                    "===> Device detected and Thread Server created for this address : " + device.address,
+//                    Toast.LENGTH_SHORT).show()
+//            Log.d(TAG, "Found motor cycle dongle")
+//            dongleMacAddress = device.address
+//            maps_transmit_state_button.isEnabled = true
+//            maps_transmit_state_button.setBackgroundColor(Color.WHITE)
+//        } else if (device.address == BluetoothConstants.M_HELMET_MAC_ADDRRESS){
+//            helmetMacAddress = device.address
+//            Toast.makeText(this,
+//                    "===> Device detected and Thread Server created for this address : " + device.address,
+//                    Toast.LENGTH_SHORT).show()
+//            Log.d(TAG, "Found motor cycle helmet")
+//        }
         //helmetMacAddress = device.address
         //dongleMacAddress = device.address
     }
